@@ -1,0 +1,198 @@
+{
+  "name": "Auto Invoice Creation and Emailing",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "On clicking 'execute'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        368,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "0e2e0849-024c-4be0-99d0-509f4e1e165e"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "mensaje",
+              "value": "Un León pasea por la Sabana Africana"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        560,
+        128
+      ],
+      "typeVersion": 1,
+      "id": "5746c057-87bb-4100-aa1d-974ccc60c38c"
+    },
+    {
+      "parameters": {
+        "command": "=echo Replace: {{$node[\"Set\"].json[\"message\"].replace('A Lion', 'A Giraffe')}}"
+      },
+      "name": "Replace",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        944,
+        256
+      ],
+      "notesInFlow": true,
+      "typeVersion": 1,
+      "id": "ced616bd-7a93-4f29-a5f7-93fd9588bca1",
+      "notes": ".replace - .replace('Un León', 'Una Jirafa')"
+    },
+    {
+      "parameters": {},
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        1088,
+        -64
+      ],
+      "notesInFlow": true,
+      "typeVersion": 1,
+      "id": "f420663c-b315-4749-befd-dbddee711b88",
+      "notes": "Merge the outputs\n"
+    },
+    {
+      "parameters": {
+        "command": "=echo Minúsuclas: {{$node[\"Set\"].json[\"mensaje\"].toLowerCase()}}"
+      },
+      "name": "lowercase",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        768,
+        -64
+      ],
+      "notesInFlow": true,
+      "typeVersion": 1,
+      "id": "aa76ea76-265b-4441-bf11-cc40b6cc6b72",
+      "notes": ".toLowerCase()"
+    },
+    {
+      "parameters": {
+        "command": "=echo Mayúsculas: {{$node[\"Set\"].json[\"mensaje\"].toUpperCase()}}"
+      },
+      "name": "UPPERCASE",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        944,
+        48
+      ],
+      "notesInFlow": true,
+      "typeVersion": 1,
+      "id": "72f89683-000f-49dd-9b13-6db2e7235b97",
+      "notes": ".toUpperCase()"
+    },
+    {
+      "parameters": {},
+      "name": "Result",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        1344,
+        112
+      ],
+      "notesInFlow": true,
+      "typeVersion": 1,
+      "id": "09f1497e-c227-4425-9724-49951a3f5adb",
+      "notes": "Joins the output\n"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Set": {
+      "main": [
+        [
+          {
+            "node": "lowercase",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "UPPERCASE",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Replace",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "On clicking 'execute'": {
+      "main": [
+        [
+          {
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "lowercase": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UPPERCASE": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b4cdd5a8-1f06-45ac-9c1b-0775ab2a8cb6",
+  "meta": {
+    "templateId": "871",
+    "instanceId": "6a697cd87458929646c57ce704808240176bf4e93fb06daed39fd27df8a9a3cb"
+  },
+  "id": "0Myrng0EG6C3xG7H",
+  "tags": []
+}
