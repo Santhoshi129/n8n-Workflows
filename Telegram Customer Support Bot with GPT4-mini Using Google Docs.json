@@ -1,0 +1,220 @@
+{
+  "name": "Telegram Customer Support Bot with GPT4-mini Using Google Docs",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "f611e34d-0de9-42b7-b438-bc522817f9ba",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1152,
+        528
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}"
+      },
+      "id": "7c968986-dcc4-4a26-bedf-5a5f9c75d2dc",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "position": [
+        1312,
+        528
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "https://docs.google.com/document/d/1os02TMG0h74DYE_mmv5utPr68LtV946otozP1YZTNr0/edit?tab=t.0"
+      },
+      "id": "fd291678-8522-4e00-94bc-7033689f14b3",
+      "name": "Google Docs",
+      "type": "n8n-nodes-base.googleDocsTool",
+      "position": [
+        1456,
+        528
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "d3e871cb-48b9-4921-8376-359f53e40942",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        880,
+        352
+      ],
+      "webhookId": "d546870e-898a-4d37-b290-a4b3e3eac311",
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "8deb9aa3-4b45-4737-a6a5-4311fb460b04",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        1648,
+        352
+      ],
+      "webhookId": "cfeeb7fc-6dad-4482-b8c7-73998bfc613f",
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "content": "Telegram Trigger",
+        "height": 500,
+        "width": 300
+      },
+      "id": "eac2e88c-0c0f-4451-bbe2-915de6e9ab1a",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        768,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "Telegram Trigger",
+        "height": 500,
+        "width": 500,
+        "color": 4
+      },
+      "id": "c99be9a9-7368-4b22-be65-26108f8dc23a",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1088,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "Telegram Trigger",
+        "height": 500,
+        "width": 280,
+        "color": 3
+      },
+      "id": "ba596aa6-e6fb-4df4-9bdb-7b75536cfbf6",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1616,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "You are a helpful Customer Support Agent, cross-reference the Google Doc for any customer queries for relevant information. If relevant information is not found, do not make up facts. Plainly let the user know that the information isn't available. \n\n#Tonality\nFriendly, casual and helpful. if user or customer says hi, inform them that you are a Friendly Customer Support Agent"
+        }
+      },
+      "id": "ccf10ec2-eae2-47be-9be7-7bf7b3d974cb",
+      "name": "Customer Support AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1200,
+        352
+      ],
+      "typeVersion": 2
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "Customer Support AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Customer Support AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Customer Support AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Customer Support AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Support AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4ee54844-70d8-4a4a-8f49-8c3fad9ba8f7",
+  "meta": {
+    "templateId": "4875",
+    "instanceId": "6a697cd87458929646c57ce704808240176bf4e93fb06daed39fd27df8a9a3cb"
+  },
+  "id": "5NZKb2omkEkyaTxp",
+  "tags": []
+}
