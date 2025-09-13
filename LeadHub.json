@@ -1,0 +1,182 @@
+{
+  "name": "LeadHub",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1joOEvFu5RQoAZpCWhAZQF0L-wcZsJfmogMbPzYVUNII",
+          "mode": "list",
+          "cachedResultName": "LeadHub (Responses)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1joOEvFu5RQoAZpCWhAZQF0L-wcZsJfmogMbPzYVUNII/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 5670960,
+          "mode": "list",
+          "cachedResultName": "Form Responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1joOEvFu5RQoAZpCWhAZQF0L-wcZsJfmogMbPzYVUNII/edit#gid=5670960"
+        },
+        "options": {}
+      },
+      "name": "LEADHUB FORM",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f649fb4e-03b9-492c-bac7-65c807e76edb",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "3XkP7QxSBlCYZKaU",
+          "name": "Google Sheets Trigger account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "if (items[0].json['Full Name']) {\n  const names = items[0].json['Full Name'].split(' ');\n  items[0].json.first_name = names[0];\n  items[0].json.last_name = names.slice(1).join(' ');\n}\nif (items[0].json['State, Country']) {\n  const parts = items[0].json['State, Country'].split(',');\n  items[0].json.country_only = parts[parts.length - 1].trim();\n}\nreturn items;"
+      },
+      "name": "Split and Extract Details",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "1b1aabb0-2c98-4829-9a83-2b1dfd9e8494"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json['results'].length}}",
+              "operation": "notEqual"
+            }
+          ]
+        }
+      },
+      "name": "IF Mail - Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        736,
+        0
+      ],
+      "id": "1257f16b-7497-486d-abb0-77502168fadc"
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "search",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        0
+      ],
+      "id": "0e5a3ff2-4177-4a72-87be-1d6f0c92e83b",
+      "name": "Search a database",
+      "credentials": {
+        "notionApi": {
+          "id": "idaM2krwlmQou3Ps",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "databaseId": {
+          "__rl": true,
+          "value": "9e9c364ee96f448abc5c04e726739984",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        992,
+        -16
+      ],
+      "id": "a591c35b-b79b-4e4d-8228-7d351ff21b45",
+      "name": "Creates",
+      "credentials": {
+        "notionApi": {
+          "id": "idaM2krwlmQou3Ps",
+          "name": "Notion account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "LEADHUB FORM": {
+      "main": [
+        [
+          {
+            "node": "Split and Extract Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split and Extract Details": {
+      "main": [
+        [
+          {
+            "node": "Search a database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Mail - Exists": {
+      "main": [
+        [
+          {
+            "node": "Creates",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Search a database": {
+      "main": [
+        [
+          {
+            "node": "IF Mail - Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7d7003f3-17be-4053-9b09-dcb5265646a1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6a697cd87458929646c57ce704808240176bf4e93fb06daed39fd27df8a9a3cb"
+  },
+  "id": "eodvvFnut9xWPwpm",
+  "tags": []
+}
