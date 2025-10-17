@@ -1,0 +1,381 @@
+{
+  "name": "Automated Warm Lead Generation - Reddit",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "getAll",
+        "subreddit": "RemoteJobs",
+        "limit": 10,
+        "filters": {
+          "category": "new"
+        }
+      },
+      "name": "Get New Reddit Posts",
+      "type": "n8n-nodes-base.reddit",
+      "typeVersion": 1,
+      "position": [
+        -928,
+        192
+      ],
+      "id": "d7a15d50-6ba5-48e1-879d-3f082e3b8cee",
+      "credentials": {
+        "redditOAuth2Api": {
+          "id": "ORjiMCZq13yRh3D4",
+          "name": "Reddit account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Format posts\nconst json_data = item.json || {};\nreturn {\n  json: {\n    title: json_data.title || '',\n    text: json_data.selftext || '',\n    url: json_data.permalink ? 'https://reddit.com' + json_data.permalink : '',\n    source: json_data.subreddit || ''\n  }\n};"
+      },
+      "name": "Format Reddit Post",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        192
+      ],
+      "id": "f1ce4d01-f646-4ec7-9ab8-2db670b0bd26"
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {}
+      },
+      "name": "Split In Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -544,
+        192
+      ],
+      "id": "4d008226-661a-42cf-a939-69a6ffd63e51"
+    },
+    {
+      "parameters": {
+        "unit": "seconds"
+      },
+      "name": "Wait 20s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        208
+      ],
+      "id": "bb5e6b49-1003-4314-97ec-d62687ea1e83",
+      "webhookId": "df332449-dac6-4d01-ac76-a9eb9a84b96a"
+    },
+    {
+      "parameters": {
+        "jsCode": "let items = [];\n\ntry {\n    const raw = $json['candidates'][0]['content'] || '';\n\n    // Extract JSON object\n    const match = raw.match(/\\{[\\s\\S]*\\}/);\n    let data = {};\n    if (match) {\n        data = JSON.parse(match[0]);\n    }\n\n    // Only include true leads\n    if (data.is_lead === true) {\n        items.push({\n            json: {\n                is_lead: true,\n                confidence_score: data.confidence_score || 10,\n                summary: data.summary || 'N/A',\n                title: $json.title || 'N/A',\n                url: $json.url || 'N/A',\n                source: $json.source || 'N/A'\n            }\n        });\n    }\n} catch (err) {\n    console.error(\"Failed to parse Gemini response:\", err);\n}\n\n// Must always return an array\nreturn items;\n"
+      },
+      "name": "Parse Gemini Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        208
+      ],
+      "id": "a7cdfc5a-ae99-4f19-9a1b-961621962026",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "25de0284-e888-4a7d-9c34-cf4906839a78",
+              "leftValue": "is_lead",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "name": "Filter Qualified Leads",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        352,
+        208
+      ],
+      "id": "ad478288-b90e-4a8c-adf9-ac8a67a4b71d",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1KOdKU5ezwxTE0f6JewOvKA6v0R4-7zvhgP7ibRflFho",
+          "mode": "list",
+          "cachedResultName": "Warm Lead SpreadSheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KOdKU5ezwxTE0f6JewOvKA6v0R4-7zvhgP7ibRflFho/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KOdKU5ezwxTE0f6JewOvKA6v0R4-7zvhgP7ibRflFho/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "is_lead",
+              "displayName": "is_lead",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "confidence_score",
+              "displayName": "confidence_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false,
+          "Timestamp": "={{$now}}",
+          "Lead Title": "={{$json.title}}",
+          "Source": "={{$json.source}}",
+          "URL": "={{$json.url}}",
+          "AI Summary": "={{$json.summary}}",
+          "Confidence Score": "={{$json.confidence_score}}"
+        },
+        "options": {}
+      },
+      "name": "Append to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        576,
+        192
+      ],
+      "id": "114915ae-cb54-479a-ac5c-5c5b9c613649",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "irrAQGkGPqHIgsie",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are an expert Lead Qualification Assistant. Analyze the following post and determine if it is a warm lead from someone genuinely looking to hire or buy a tech service (web development, app development, UI/UX design, automation). Ignore posts where the poster offers their own services, asks for school help, or just discusses topics. Respond ONLY in JSON with keys: is_lead (boolean), confidence_score (0-10), summary (one sentence). Do NOT add any extra text outside the JSON.",
+              "role": "model"
+            },
+            {
+              "content": "=Post title: {{ $json.title }}\nPost content: {{ $json.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        208
+      ],
+      "id": "325b6d3b-ab3f-40d3-8fe8-e9f8247c0937",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "kBPQElGFvlUh8cf0",
+          "name": "Google Gemini(PaLM) Api account 4"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        192
+      ],
+      "id": "ed4dd1c1-6e27-43ff-a340-1544725e6568",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get New Reddit Posts": {
+      "main": [
+        [
+          {
+            "node": "Format Reddit Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Reddit Post": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split In Batches": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Wait 20s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 20s": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Gemini Response": {
+      "main": [
+        [
+          {
+            "node": "Filter Qualified Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Qualified Leads": {
+      "main": [
+        [
+          {
+            "node": "Append to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Parse Gemini Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get New Reddit Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "29788dc6-3235-4c5d-95f0-592a4cb43ef0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6a697cd87458929646c57ce704808240176bf4e93fb06daed39fd27df8a9a3cb"
+  },
+  "id": "1pJMN2Nevq5Go0Nb",
+  "tags": []
+}
